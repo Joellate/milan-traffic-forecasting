@@ -1,0 +1,12 @@
+data/
+src/data/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.h5
+*.keras
+models/
+.DS_Store
+.chrome-tmp/
+reports/video_presentation_outline.md
+
