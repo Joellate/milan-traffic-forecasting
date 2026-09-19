@@ -1,4 +1,5 @@
-data/
+data/processed/
+data/raw/
 src/data/
 __pycache__/
 *.pyc
@@ -8,5 +9,4 @@ __pycache__/
 models/
 .DS_Store
 .chrome-tmp/
-reports/video_presentation_outline.md
 

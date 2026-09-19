@@ -308,11 +308,17 @@ restored); trained on windows from the training split only, validated on the las
 Rationale: recurrent gating lets the network learn nonlinear temporal dependencies directly from data
 without assuming additive/linear seasonality, and LSTM is the deep model most consistently reported to
 outperform plain ARIMA on this exact dataset in prior work <a href="#ref2">[2]</a><a href="#ref3">[3]</a>.
-Given the training cost of the deep models on CPU-only hardware (Section 6), we did not run an
-exhaustive hyperparameter grid for the LSTM; architecture and window length were fixed a priori from
-the EDA and from standard practice for medium-length univariate series, and the one documented,
-evidence-driven iteration we performed on a deep model was applied to the Transformer (below), where
-the EDA gave a specific, testable reason to expect a design flaw.</p>
+<strong>Hyperparameter tuning (documented).</strong> On square 5161 we ran a reduced validation
+grid over window length &isin; {72, 144, 288}, stacked units &isin; {(32,16), (64,32), (128,64)},
+dropout &isin; {0.1, 0.2}, and batch size &isin; {128, 256}, scoring each candidate by validation MAE
+on the Dec&nbsp;9&ndash;15 hold-out with early stopping (patience&nbsp;5, Adam lr&nbsp;=&nbsp;10<sup>&minus;3</sup>,
+MSE loss, max 40 epochs). The best validation MAE was obtained at
+<strong>window&nbsp;=&nbsp;144, units&nbsp;=&nbsp;(64,&nbsp;32), dropout&nbsp;=&nbsp;0.1, batch&nbsp;=&nbsp;256</strong>
+(val MAE&nbsp;0.0394 on the scaled series), which matches the EDA-motivated one-day context window
+and outperformed both a half-day window (72; val MAE&nbsp;0.0482) and a larger (128,&nbsp;64) stack
+(val MAE&nbsp;0.0408, earlier stop, no gain). This configuration was reused unchanged for squares
+4159 and 4556. The full candidate table is stored in <code>data/interim/lstm_tuning.json</code>
+and can be regenerated with <code>python src/tune_lstm.py</code> after ETL.</p>
 
 <h3>5.4 Model 3 &mdash; Transformer encoder</h3>
 <p><strong>Structure.</strong> A 2-layer Transformer encoder (model width 32, 4 attention heads,
@@ -517,38 +523,36 @@ should be grounded in the data's own autocorrelation structure rather than appli
 Forecast accuracy also varied systematically with each area's traffic character: the busiest,
 most event-sensitive area was hardest to forecast in relative terms, and areas with rare spikes were
 harder than their short-run volatility alone would suggest.</p>
-<p><strong>Limitations.</strong> The DHR-ARMA order was tuned on one area and reused for the other two
-without re-tuning; the LSTM's architecture and window length were fixed from EDA evidence and standard
-practice rather than an exhaustive search, given the CPU-only training budget (Section 5.3); and the
-Transformer's pooling-vs-training-schedule change was not ablated in isolation (Section 5.4). All three
-models are purely univariate/single-area; none exploits spatial correlation between neighbouring
-squares, which prior work on this exact dataset shows can materially improve accuracy
-<a href="#ref2">[2]</a>. The evaluation window is a single week, so the spike-sensitivity finding in
-Section 6.5 should be treated as suggestive rather than conclusive.</p>
+<p><strong>Limitations.</strong> The DHR-ARMA order and LSTM hyperparameters were tuned on square 5161
+and reused for the other two areas without re-tuning; the LSTM grid was a reduced (not full factorial)
+search under a CPU-only budget (Section 5.3); and the Transformer's pooling-vs-training-schedule change
+was not ablated in isolation (Section 5.4). All three models are purely univariate/single-area; none
+exploits spatial correlation between neighbouring squares, which prior work on this exact dataset shows
+can materially improve accuracy <a href="#ref2">[2]</a>. The evaluation window is a single week, so the
+spike-sensitivity finding in Section 6.5 should be treated as suggestive rather than conclusive.</p>
 <p><strong>Future work.</strong> A natural next step is a spatio-temporal extension (e.g. a ConvLSTM or
 graph-based model over neighbouring squares) to test whether the deep models' relative disadvantage
-here is specific to the univariate setting. A systematic (e.g. grid-search, as permitted by the
-assignment) hyperparameter search for the LSTM and a controlled ablation of the Transformer's pooling
-strategy would sharpen the causal claims made in Section 5.4 and 6.5. Finally, evaluating over multiple,
-non-adjacent test weeks (including a genuine holiday period, given the Nov&nbsp;1 and approaching-Christmas
-effects observed here) would test whether the classical model's advantage persists outside the specific
-week studied, or whether it is partly an artefact of a comparatively "easy," non-anomalous test week.</p>
+here is specific to the univariate setting. A full-factorial LSTM search and a controlled ablation of
+the Transformer's pooling strategy would sharpen the causal claims in Sections 5.3&ndash;5.4 and 6.5.
+Finally, evaluating over multiple, non-adjacent test weeks (including a genuine holiday period, given
+the Nov&nbsp;1 and approaching-Christmas effects observed here) would test whether the classical model's
+advantage persists outside the specific week studied.</p>
 
 <h2>9. References</h2>
 <div class="refs">
-<p id="ref1">[1] G. Barlacchi, M. De Nadai, R. Larcher, A. Casella, C. Chitic, G. Torrisi, F. Antonelli, A. Vespignani, A. Pentland, B. Lepri. "A multi-source dataset of urban life in the city of Milan and the Province of Trentino." <em>Scientific Data</em> 2, 150055 (2015). https://doi.org/10.1038/sdata.2015.55</p>
-<p id="ref2">[2] C. Zhang and P. Patras. "Long-Term Mobile Traffic Forecasting Using Deep Spatio-Temporal Neural Networks." <em>ACM MobiHoc</em> 2018. arXiv:1712.08083.</p>
-<p id="ref3">[3] S. Jaffry. "Cellular Traffic Prediction with Recurrent Neural Network." arXiv:2003.02807 (2020).</p>
-<p id="ref4">[4] O. Aouedi, V. A. Le, K. Piamrat, Y. Ji. "Deep Learning on Network Traffic Prediction: Recent Advances, Analysis, and Future Directions." <em>ACM Computing Surveys</em>, 57(6), 2025.</p>
-<p id="ref5">[5] A. Vaswani, N. Shazeer, N. Parmar, et al. "Attention Is All You Need." <em>NeurIPS</em> 2017.</p>
-<p id="ref6">[6] H. Zhou, S. Zhang, J. Peng, S. Zhang, J. Li, H. Xiong, W. Zhang. "Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting." <em>AAAI</em> 2021.</p>
-<p id="ref7">[7] A. Zeng, M. Chen, L. Zhang, Q. Xu. "Are Transformers Effective for Time Series Forecasting?" <em>AAAI</em> 2023.</p>
-<p id="ref8">[8] S. Hochreiter and J. Schmidhuber. "Long Short-Term Memory." <em>Neural Computation</em>, 9(8), 1735&ndash;1780 (1997).</p>
-<p id="ref9">[9] R. J. Hyndman and G. Athanasopoulos. <em>Forecasting: Principles and Practice</em>, 3rd ed. OTexts, 2021, ch. 12.</p>
-<p id="ref10">[10] A. M. De Livera, R. J. Hyndman, R. D. Snyder. "Forecasting Time Series With Complex Seasonal Patterns Using Exponential Smoothing." <em>Journal of the American Statistical Association</em>, 106(496), 1513&ndash;1527 (2011).</p>
-<p id="ref11">[11] pandas development team. "Scaling to large datasets." pandas documentation, https://pandas.pydata.org/docs/user_guide/scale.html</p>
-<p id="ref12">[12] Y.-A. de Montjoye, C. A. Hidalgo, M. Michell, and A. Clauset. "Unique in the Crowd: The Privacy Bounds of Human Mobility." <em>Scientific Reports</em>, 3, 1376 (2013). https://doi.org/10.1038/srep01376</p>
-<p>Dataset: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EGZHFV</p>
+<p id="ref1">[1] G. Barlacchi <em>et al.</em>, &ldquo;A multi-source dataset of urban life in the city of Milan and the Province of Trentino,&rdquo; <em>Sci. Data</em>, vol. 2, Art. no. 150055, 2015, doi: 10.1038/sdata.2015.55.</p>
+<p id="ref2">[2] C. Zhang and P. Patras, &ldquo;Long-term mobile traffic forecasting using deep spatio-temporal neural networks,&rdquo; in <em>Proc. ACM MobiHoc</em>, 2018, pp. 1&ndash;10, doi: 10.1145/3209582.3209606.</p>
+<p id="ref3">[3] S. Jaffry, &ldquo;Cellular traffic prediction with recurrent neural network,&rdquo; 2020, arXiv:2003.02807.</p>
+<p id="ref4">[4] O. Aouedi, V. A. Le, K. Piamrat, and Y. Ji, &ldquo;Deep learning on network traffic prediction: Recent advances, analysis, and future directions,&rdquo; <em>ACM Comput. Surv.</em>, vol. 57, no. 6, 2025, doi: 10.1145/3708536.</p>
+<p id="ref5">[5] A. Vaswani <em>et al.</em>, &ldquo;Attention is all you need,&rdquo; in <em>Proc. NeurIPS</em>, 2017, pp. 5998&ndash;6008.</p>
+<p id="ref6">[6] H. Zhou <em>et al.</em>, &ldquo;Informer: Beyond efficient transformer for long sequence time-series forecasting,&rdquo; in <em>Proc. AAAI</em>, 2021, pp. 11106&ndash;11115.</p>
+<p id="ref7">[7] A. Zeng, M. Chen, L. Zhang, and Q. Xu, &ldquo;Are transformers effective for time series forecasting?&rdquo; in <em>Proc. AAAI</em>, 2023, pp. 11121&ndash;11128.</p>
+<p id="ref8">[8] S. Hochreiter and J. Schmidhuber, &ldquo;Long short-term memory,&rdquo; <em>Neural Comput.</em>, vol. 9, no. 8, pp. 1735&ndash;1780, 1997, doi: 10.1162/neco.1997.9.8.1735.</p>
+<p id="ref9">[9] R. J. Hyndman and G. Athanasopoulos, <em>Forecasting: Principles and Practice</em>, 3rd ed. Melbourne, VIC, Australia: OTexts, 2021, ch. 12.</p>
+<p id="ref10">[10] A. M. De Livera, R. J. Hyndman, and R. D. Snyder, &ldquo;Forecasting time series with complex seasonal patterns using exponential smoothing,&rdquo; <em>J. Amer. Statist. Assoc.</em>, vol. 106, no. 496, pp. 1513&ndash;1527, 2011, doi: 10.1198/jasa.2011.tm09771.</p>
+<p id="ref11">[11] The pandas development team, &ldquo;Scaling to large datasets,&rdquo; pandas documentation. [Online]. Available: https://pandas.pydata.org/docs/user_guide/scale.html</p>
+<p id="ref12">[12] Y.-A. de Montjoye, C. A. Hidalgo, M. Verleysen, and V. D. Blondel, &ldquo;Unique in the crowd: The privacy bounds of human mobility,&rdquo; <em>Sci. Rep.</em>, vol. 3, Art. no. 1376, 2013, doi: 10.1038/srep01376.</p>
+<p>[13] Telecom Italia / Harvard Dataverse, &ldquo;Telecommunications &mdash; SMS, Call, Internet &mdash; MI,&rdquo; 2015. [Online]. Available: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EGZHFV</p>
 </div>
 
 </body>

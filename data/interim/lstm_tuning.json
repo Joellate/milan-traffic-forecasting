@@ -1,0 +1,31 @@
+{
+  "area": 5161,
+  "selection_criterion": "minimum mean validation MAE on the Dec 9–15 hold-out (last 7 training days), early stopping patience=5, seed=42",
+  "search_space": {
+    "window": [72, 144, 288],
+    "units": [[32, 16], [64, 32], [128, 64]],
+    "dropout": [0.1, 0.2],
+    "batch_size": [128, 256],
+    "epochs_max": 40,
+    "optimizer": "Adam(1e-3)",
+    "loss": "mse"
+  },
+  "protocol": "Reduced factorial grid on square 5161 only (CPU budget). Window length motivated by EDA daily period (144). Winner reused unchanged for squares 4159 and 4556.",
+  "results": [
+    {"window": 72, "units": [64, 32], "dropout": 0.1, "batch_size": 256, "val_mae": 0.0482, "epochs_used": 22, "selected": false, "note": "Half-day context; misses full diurnal shape"},
+    {"window": 288, "units": [64, 32], "dropout": 0.1, "batch_size": 256, "val_mae": 0.0411, "epochs_used": 18, "selected": false, "note": "Two-day window; no clear gain vs 144, ~2x train cost"},
+    {"window": 144, "units": [32, 16], "dropout": 0.1, "batch_size": 256, "val_mae": 0.0447, "epochs_used": 28, "selected": false, "note": "Under-capacity vs residual nonlinear peaks"},
+    {"window": 144, "units": [128, 64], "dropout": 0.1, "batch_size": 256, "val_mae": 0.0408, "epochs_used": 14, "selected": false, "note": "Larger model; early stop, no val improvement over (64,32)"},
+    {"window": 144, "units": [64, 32], "dropout": 0.2, "batch_size": 256, "val_mae": 0.0419, "epochs_used": 31, "selected": false, "note": "Stronger dropout slightly hurt val MAE"},
+    {"window": 144, "units": [64, 32], "dropout": 0.1, "batch_size": 128, "val_mae": 0.0406, "epochs_used": 19, "selected": false, "note": "Similar val MAE, slower wall-clock than batch 256"},
+    {"window": 144, "units": [64, 32], "dropout": 0.1, "batch_size": 256, "val_mae": 0.0394, "epochs_used": 21, "selected": true, "note": "Best validation MAE; used for all reported LSTM test results"}
+  ],
+  "selected": {
+    "window": 144,
+    "units": [64, 32],
+    "dropout": 0.1,
+    "batch_size": 256,
+    "epochs_max": 40,
+    "patience": 5
+  }
+}

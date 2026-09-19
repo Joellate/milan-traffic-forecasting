@@ -1,0 +1,27 @@
+{
+  "area": 5161,
+  "selection_criterion": "AIC (lower is better); prefer parsimony when AIC delta < 1",
+  "fixed": {
+    "d": 0,
+    "k_daily": 4,
+    "k_weekly": 3,
+    "reason_d0": "ADF rejects unit root on raw series and STL residual (report Section 4.1)"
+  },
+  "grid_definition": {
+    "p": [0, 1, 2, 3],
+    "q": [0, 1, 2],
+    "n_fits": 12
+  },
+  "notable_aic": [
+    {"p": 0, "d": 0, "q": 0, "aic": 164423.9, "note": "white-noise residuals after harmonics — inadequate"},
+    {"p": 3, "d": 0, "q": 2, "aic": 88018.7, "note": "grid minimum"},
+    {"p": 3, "d": 0, "q": 1, "aic": 88019.0, "note": "selected (AIC within 0.3 of minimum)"}
+  ],
+  "selected_order": [3, 0, 1],
+  "selected_aic": 88019.0,
+  "rationale": "AIC minimum is (3,0,2) at 88018.7; (3,0,1) is within 0.3 AIC and preferred for parsimony. Order reused for squares 4159 and 4556.",
+  "reuse_in_sample_aic": {
+    "4159": 66390.4,
+    "4556": 73484.3
+  }
+}

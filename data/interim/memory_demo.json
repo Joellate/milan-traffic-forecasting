@@ -1,0 +1,39 @@
+{
+  "sample_date": "2013-11-01",
+  "hardware": {
+    "cpu_cores": 8,
+    "ram_gb": 8.4,
+    "gpu": "none (TensorFlow CPU-only)"
+  },
+  "naive": {
+    "rows": 4842625,
+    "pandas_memory_usage_deep_mb": 309.9,
+    "process_rss_before_mb": 78.4,
+    "process_rss_after_mb": 390.2,
+    "process_rss_delta_mb": 311.8,
+    "elapsed_sec": 6.2,
+    "columns": 8,
+    "note": "pandas.read_csv default dtypes, all columns, one full day resident in memory"
+  },
+  "optimised": {
+    "rows_aggregated": 1439946,
+    "pandas_memory_usage_deep_mb": 20.2,
+    "process_rss_peak_mb": 118.4,
+    "elapsed_sec": 8.9,
+    "chunksize": 500000,
+    "usecols": ["square_id", "timestamp", "internet"],
+    "dtypes": {"square_id": "int16", "timestamp": "int64", "internet": "float32"},
+    "note": "chunked zip stream, compact dtypes, per-chunk aggregation before next chunk"
+  },
+  "improvement": {
+    "dataframe_memory_reduction_factor": 15.4,
+    "extrapolated_naive_full_62day_gb": 19.3,
+    "full_etl_peak_rss_mb": 1360.5,
+    "full_etl_in_memory_mb": 1247.8,
+    "full_etl_rows": 89127473,
+    "full_etl_wall_clock_sec": 706,
+    "raw_text_gb": 20.8,
+    "parquet_mb": 557.8,
+    "compression_factor_vs_raw": 37.3
+  }
+}

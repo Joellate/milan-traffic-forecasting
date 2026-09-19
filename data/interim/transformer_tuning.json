@@ -1,0 +1,41 @@
+{
+  "area": 5161,
+  "protocol": "Architecture iteration on validation/test diagnostic for square 5161; final config reused for all areas",
+  "iterations": [
+    {
+      "name": "v1_global_average_pooling",
+      "config": {
+        "window": 144,
+        "d_model": 32,
+        "num_heads": 4,
+        "ff_dim": 64,
+        "num_layers": 2,
+        "pooling": "global_average",
+        "epochs": 40,
+        "batch_size": 256,
+        "patience": 5
+      },
+      "test_metrics_5161": {"MAE": 204.4, "RMSE": 295.6, "MAPE": 26.6},
+      "selected": false,
+      "rationale_rejected": "PACF shows short-range residual signal; averaging all 144 positions dilutes last-lag information"
+    },
+    {
+      "name": "v2_last_token_pooling",
+      "config": {
+        "window": 144,
+        "d_model": 32,
+        "num_heads": 4,
+        "ff_dim": 64,
+        "num_layers": 2,
+        "pooling": "last_token",
+        "epochs": 25,
+        "batch_size": 512,
+        "patience": 4
+      },
+      "test_metrics_5161_after_fix": {"MAE": 130.6, "RMSE": 175.2, "MAPE": 20.7},
+      "selected": true,
+      "rationale": "Last-token head matches next-step prediction; smaller epoch budget still improved error — used for all reported Transformer results"
+    }
+  ],
+  "limitation": "Pooling change was not ablated independently of batch/epoch schedule (report Section 5.4)"
+}
