@@ -10,7 +10,6 @@ Usage (from project root, after ETL):
 from __future__ import annotations
 
 import json
-from itertools import product
 from pathlib import Path
 
 import numpy as np

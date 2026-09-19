@@ -69,7 +69,7 @@ src/
   tune_lstm.py                      # LSTM validation-grid hyperparameter search
   run_experiments.py                  # orchestrates all (model, area) experiments
 reports/
-  figures/, tables/, references.md, report.pdf, video_script.md
+  figures/, tables/, references.md, report.pdf
 tests/
   test_smoke.py
 data/interim/                        # committed JSON evidence (memory, tuning, metrics)
